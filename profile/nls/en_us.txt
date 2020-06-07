@@ -8,5 +8,5 @@ CMD-ctl-REMOVE_NOTICE_TEST-NAME = Remove Notice Test
 ST-ctl-ST-NAME = NodeServer Online
 
 # mynodetype
-ND-tmplnode-NAME = Template Node
-ST-tmplnode-ST-NAME = Node Status
+ND-ctnode-NAME = CT
+ST-ctnode-ST-NAME = Node Status
