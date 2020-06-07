@@ -10,6 +10,6 @@ ST-ctl-ST-NAME = NodeServer Online
 # ctnode
 ND-ctnode-NAME = CT
 ST-ctnode-ST-NAME = Node Status
-ST-ctnode-PWR-NAME = Power
-ST-ctnode-VAR-NAME = Reactive Power
-ST-ctnode-VOLTS-NAME = Voltage
+ST-ctnode-GV0-NAME = Power
+ST-ctnode-GV1-NAME = Reactive Power
+ST-ctnode-GV2-NAME = Voltage

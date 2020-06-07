@@ -4,7 +4,7 @@
     <nodeDef id="controller" nls="ctl">
         <editors />
         <sts>
-			<st id="ST" editor="bool" />
+		<st id="ST" editor="bool" />
 		</sts>
         <cmds>
             <sends>
@@ -24,9 +24,9 @@
     <nodeDef id="ctnode" nls="ctnode">
         <sts>
             <st id="ST" editor="bool" />
-            <st id="PWR" editor="bool" />
-            <st id="VAR" editor="bool" />
-            <st id="VOLTS" editor="bool" />
+            <st id="GV0" editor="watts" />
+            <st id="GV1" editor="watts" />
+            <st id="GV2" editor="volts" />
         </sts>
         <cmds>
             <sends />

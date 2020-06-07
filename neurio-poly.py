@@ -161,7 +161,8 @@ class Controller(polyinterface.Controller):
 
         for i, val in enumerate(cts):
                 LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
-                self.nodes['ct1'].updateValues(val.power, val.reactivePower, val.voltage)
+                ctNodeAddr = "ct"+str(i+1)
+                self.nodes[ctNodeAddr].updateValues(val.power, val.reactivePower, val.voltage)
         for i, val in enumerate(channels):
                 LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
         LOGGER.debug('shortPoll - done checking Neurio status')
@@ -199,8 +200,8 @@ class Controller(polyinterface.Controller):
         cts, channels = pollSensor()
         for i, val in enumerate(cts):
                 LOGGER.debug('Adding CT {}'.format(i))
-                ctaddr = "ct"+str(i)
-                ctname = "CT"+str(i)
+                ctaddr = "ct"+str(i+1)
+                ctname = "CT"+str(i+1)
                 self.addNode(CTNode(self, self.address, ctaddr, ctname))
         for i, val in enumerate(channels):
                 LOGGER.debug('Adding Channel {}'.format(i))
@@ -344,14 +345,17 @@ class CTNode(polyinterface.Node):
         and we get a return result from Polyglot. Only happens once.
         """
         self.setDriver('ST', 1)
+        self.setDriver('GV0', 0)
+        self.setDriver('GV1', 0)
+        self.setDriver('GV2', 0)
         pass
 
     def updateValues(self, power, reactivePower, voltage):
         LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
-        self.setDriver('PWR', 123)
         self.setDriver('ST', 2)
-        # self.setDriver('VAR', reactivePower)
-        # self.setDriver('VOLTS', voltage)
+        self.setDriver('GV0', power)
+        self.setDriver('GV1', reactivePower)
+        self.setDriver('GV2', voltage)
 
     def shortPoll(self):
         LOGGER.debug('CTNode - shortPoll')
@@ -387,9 +391,9 @@ class CTNode(polyinterface.Node):
     # hint = [1,2,3,4]
     drivers = [
         {'driver': 'ST', 'value': 0, 'uom': 2},
-        {'driver': 'PWR', 'value': 1, 'uom': 2},
-        {'driver': 'VAR', 'value': 2, 'uom': 2},
-        {'driver': 'VOLTS', 'value': 3, 'uom': 2}
+        {'driver': 'GV0', 'value': 1, 'uom': 2},
+        {'driver': 'GV1', 'value': 2, 'uom': 2},
+        {'driver': 'GV2', 'value': 3, 'uom': 2}
     ]
     """
     Optional.
