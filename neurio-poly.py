@@ -52,6 +52,53 @@ class Channel:
     reactivePower: float
     voltage: float
 
+def pollSensor():
+        url = 'http://%s/both_tables.html' % "10.0.1.28"
+        LOGGER.debug('shortPoll - going to check Neurio stats @ %s", url')
+        with urlopen("http://10.0.1.28/both_tables.html") as response:
+                response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
+        LOGGER.debug('Neurio reply: {}'.format(response_content))
+        root = ET.fromstring(response_content)
+        tableIndex=0
+        cts = []
+        channels = []
+        for table in root:
+                rowIndex = 0
+                for row in table:
+                        columnIndex = 0;
+                        power = 0
+                        reactivePower = 0
+                        voltage = 0
+                        imported = 0
+                        exported = 0
+                        for column in row:
+                                if rowIndex > 1:
+                                        if tableIndex == 0:
+                                                if columnIndex == 1:
+                                                        power = column.text
+                                                elif columnIndex == 2:
+                                                        reactivePower = column.text
+                                                elif columnIndex == 3:
+                                                        voltage = column.text
+                                                        newCT = CT(power, reactivePower, voltage)
+                                                        cts.append(newCT)
+                                        else:
+                                                if columnIndex == 1:
+                                                        power = column.text
+                                                elif columnIndex == 2:
+                                                        imported = column.text
+                                                elif columnIndex == 3:
+                                                        exported = column.text
+                                                elif columnIndex == 4:
+                                                        reactivePower = column.text
+                                                elif columnIndex == 5:
+                                                        newChannel = Channel(power, imported, exported, reactivePower, voltage)
+                                                        channels.append(newChannel)
+                                columnIndex += 1
+                        rowIndex += 1
+                tableIndex += 1
+        return cts, channels
+
 class Controller(polyinterface.Controller):
     """
     The Controller Class is the primary node from an ISY perspective. It is a Superclass
@@ -114,102 +161,13 @@ class Controller(polyinterface.Controller):
         or longPoll. No need to Super this method the parent version does nothing.
         The timer can be overriden in the server.json.
         """
-        url = 'http://%s/both_tables.html' % "10.0.1.28"
-        LOGGER.debug('shortPoll - going to check Neurio stats @ %s", url')
-        with urlopen("http://10.0.1.28/both_tables.html") as response:
-        	response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
-        LOGGER.debug('Neurio reply: {}'.format(response_content))
-        root = ET.fromstring(response_content)
-        tableIndex=0
-        cts = []
-        channels = []
-        for table in root:
-                rowIndex = 0
-                for row in table:
-                        columnIndex = 0;
-                        power = 0
-                        reactivePower = 0
-                        voltage = 0
-                        imported = 0
-                        exported = 0
-                        for column in row:
-                                if rowIndex > 1:
-                                        if tableIndex == 0:
-                                                if columnIndex == 1:
-                                                        power = column.text
-                                                elif columnIndex == 2:
-                                                        reactivePower = column.text
-                                                elif columnIndex == 3:
-                                                        voltage = column.text
-                                                        newCT = CT(power, reactivePower, voltage)
-                                                        cts.append(newCT)
-                                        else:
-                                                if columnIndex == 1:
-                                                        power = column.text
-                                                elif columnIndex == 2:
-                                                        imported = column.text
-                                                elif columnIndex == 3:
-                                                        exported = column.text
-                                                elif columnIndex == 4:
-                                                        reactivePower = column.text
-                                                elif columnIndex == 5:
-                                                        newChannel = Channel(power, imported, exported, reactivePower, voltage)
-                                                        channels.append(newChannel)
-                                columnIndex += 1
-                        rowIndex += 1
-                tableIndex += 1
+        cts, channels = pollSensor()
 
         for i, val in enumerate(cts):
                 LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
         for i, val in enumerate(channels):
                 LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
         LOGGER.debug('shortPoll - done checking Neurio status')
-
-    def pollSensor():
-        url = 'http://%s/both_tables.html' % "10.0.1.28"
-        LOGGER.debug('shortPoll - going to check Neurio stats @ %s", url')
-        with urlopen("http://10.0.1.28/both_tables.html") as response:
-                response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
-        LOGGER.debug('Neurio reply: {}'.format(response_content))
-        root = ET.fromstring(response_content)
-        tableIndex=0
-        cts = []
-        channels = []
-        for table in root:
-                rowIndex = 0
-                for row in table:
-                        columnIndex = 0;
-                        power = 0
-                        reactivePower = 0
-                        voltage = 0
-                        imported = 0
-                        exported = 0
-                        for column in row:
-                                if rowIndex > 1:
-                                        if tableIndex == 0:
-                                                if columnIndex == 1:
-                                                        power = column.text
-                                                elif columnIndex == 2:
-                                                        reactivePower = column.text
-                                                elif columnIndex == 3:
-                                                        voltage = column.text
-                                                        newCT = CT(power, reactivePower, voltage)
-                                                        cts.append(newCT)
-                                        else:
-                                                if columnIndex == 1:
-                                                        power = column.text
-                                                elif columnIndex == 2:
-                                                        imported = column.text
-                                                elif columnIndex == 3:
-                                                        exported = column.text
-                                                elif columnIndex == 4:
-                                                        reactivePower = column.text
-                                                elif columnIndex == 5:
-                                                        newChannel = Channel(power, imported, exported, reactivePower, voltage)
-                                                        channels.append(newChannel)
-                                columnIndex += 1
-                        rowIndex += 1
-                tableIndex += 1
 
     def longPoll(self):
         """
@@ -238,7 +196,18 @@ class Controller(polyinterface.Controller):
         Do discovery here. Does not have to be called discovery. Called from example
         controller start method and from DISCOVER command recieved from ISY as an exmaple.
         """
-        self.addNode(CTNode(self, self.address, 'ct1', 'CT1'))
+
+        LOGGER.debug("discover")
+        # Poll the sensor and add nodes
+        cts, channels = pollSensor()
+        for i, val in enumerate(cts):
+                LOGGER.debug('Adding CT {}'.format(i))
+                ctaddr = "ct"+str(i)
+                ctname = "CT"+str(i)
+                self.addNode(CTNode(self, self.address, ctaddr, ctname))
+        for i, val in enumerate(channels):
+                LOGGER.debug('Adding Channel {}'.format(i))
+
 
     def delete(self):
         """
