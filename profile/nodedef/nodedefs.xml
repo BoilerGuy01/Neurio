@@ -25,12 +25,13 @@
         <editors />
         <sts>
             <st id="ST" editor="bool" />
+            <st id="PWR" editor="watts" />
+            <st id="VAR" editor="watts" />
+            <st id="VOLTS" editor="volts" />
         </sts>
         <cmds>
             <sends />
             <accepts>
-                <cmd id="DON" />
-                <cmd id="DOF" />
             </accepts>
         </cmds>
     </nodeDef>
