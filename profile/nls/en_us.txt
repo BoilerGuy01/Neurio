@@ -1,5 +1,5 @@
 # controller
-ND-controller-NAME = Template NodeServer Controller
+ND-controller-NAME = Neurio NodeServer Controller
 CMD-ctl-QUERY"-NAME = Query
 CMD-ctl-DISCOVER-NAME = Re-Discover
 CMD-ctl-UPDATE_PROFILE-NAME = Update Profile
@@ -7,7 +7,7 @@ CMD-ctl-REMOVE_NOTICES_ALL-NAME = Remove All Notices
 CMD-ctl-REMOVE_NOTICE_TEST-NAME = Remove Notice Test
 ST-ctl-ST-NAME = NodeServer Online
 
-# mynodetype
+# ctnode
 ND-ctnode-NAME = CT
 ST-ctnode-ST-NAME = Node Status
 ST-ctnode-PWR-NAME = Power

@@ -1,8 +1,4 @@
 #!/usr/bin/env python
-"""
-This is a NodeServer template for Polyglot v2 written in Python2/3
-by Einstein.42 (James Milne) milne.james@gmail.com
-"""
 try:
     import polyinterface
 except ImportError:
@@ -165,6 +161,7 @@ class Controller(polyinterface.Controller):
 
         for i, val in enumerate(cts):
                 LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
+                self.nodes['ct1'].updateValues(val.power, val.reactivePower, val.voltage)
         for i, val in enumerate(channels):
                 LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
         LOGGER.debug('shortPoll - done checking Neurio status')
@@ -349,6 +346,13 @@ class CTNode(polyinterface.Node):
         self.setDriver('ST', 1)
         pass
 
+    def updateValues(self, power, reactivePower, voltage):
+        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        self.setDriver('PWR', 123)
+        self.setDriver('ST', 2)
+        # self.setDriver('VAR', reactivePower)
+        # self.setDriver('VOLTS', voltage)
+
     def shortPoll(self):
         LOGGER.debug('CTNode - shortPoll')
 
@@ -380,8 +384,13 @@ class CTNode(polyinterface.Node):
         self.reportDrivers()
 
     "Hints See: https://github.com/UniversalDevicesInc/hints"
-    hint = [1,2,3,4]
-    drivers = [{'driver': 'ST', 'value': 0, 'uom': 2}]
+    # hint = [1,2,3,4]
+    drivers = [
+        {'driver': 'ST', 'value': 0, 'uom': 2},
+        {'driver': 'PWR', 'value': 1, 'uom': 2},
+        {'driver': 'VAR', 'value': 2, 'uom': 2},
+        {'driver': 'VOLTS', 'value': 3, 'uom': 2}
+    ]
     """
     Optional.
     This is an array of dictionary items containing the variable names(drivers)

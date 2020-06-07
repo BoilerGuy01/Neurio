@@ -22,12 +22,11 @@
     </nodeDef>
 	<!-- ctnode -->
     <nodeDef id="ctnode" nls="ctnode">
-        <editors />
         <sts>
             <st id="ST" editor="bool" />
-            <st id="PWR" editor="watts" />
-            <st id="VAR" editor="watts" />
-            <st id="VOLTS" editor="volts" />
+            <st id="PWR" editor="bool" />
+            <st id="VAR" editor="bool" />
+            <st id="VOLTS" editor="bool" />
         </sts>
         <cmds>
             <sends />
