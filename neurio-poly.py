@@ -80,7 +80,7 @@ def pollSensor():
                                                         cts.append(newCT)
                                         else:
                                                 if columnIndex == 1:
-                                                        power = column.text
+                                                        power = float(column.text)
                                                 elif columnIndex == 2:
                                                         imported = column.text
                                                 elif columnIndex == 3:
@@ -88,6 +88,7 @@ def pollSensor():
                                                 elif columnIndex == 4:
                                                         reactivePower = column.text
                                                 elif columnIndex == 5:
+                                                        voltage = column.text
                                                         newChannel = Channel(power, imported, exported, reactivePower, voltage)
                                                         channels.append(newChannel)
                                 columnIndex += 1
@@ -165,6 +166,8 @@ class Controller(polyinterface.Controller):
                 self.nodes[ctNodeAddr].updateValues(val.power, val.reactivePower, val.voltage)
         for i, val in enumerate(channels):
                 LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
+                channelNodeAddr = "channel"+str(i+1)
+                self.nodes[channelNodeAddr].updateValues(val.power, val.reactivePower, val.voltage, val.imported, val.exported)
         LOGGER.debug('shortPoll - done checking Neurio status')
 
     def longPoll(self):
@@ -205,6 +208,9 @@ class Controller(polyinterface.Controller):
                 self.addNode(CTNode(self, self.address, ctaddr, ctname))
         for i, val in enumerate(channels):
                 LOGGER.debug('Adding Channel {}'.format(i))
+                channeladdr = "channel"+str(i+1)
+                channelname = "Channel"+str(i+1)
+                self.addNode(ChannelNode(self, self.address, channeladdr, channelname))
 
 
     def delete(self):
@@ -307,52 +313,18 @@ class Controller(polyinterface.Controller):
 
 
 class CTNode(polyinterface.Node):
-    """
-    This is the class that all the Nodes will be represented by. You will add this to
-    Polyglot/ISY with the controller.addNode method.
-
-    Class Variables:
-    self.primary: String address of the Controller node.
-    self.parent: Easy access to the Controller Class from the node itself.
-    self.address: String address of this Node 14 character limit. (ISY limitation)
-    self.added: Boolean Confirmed added to ISY
-
-    Class Methods:
-    start(): This method is called once polyglot confirms the node is added to ISY.
-    setDriver('ST', 1, report = True, force = False):
-        This sets the driver 'ST' to 1. If report is False we do not report it to
-        Polyglot/ISY. If force is True, we send a report even if the value hasn't changed.
-    reportDrivers(): Forces a full update of all drivers to Polyglot/ISY.
-    query(): Called when ISY sends a query request to Polyglot for this specific node
-    """
     def __init__(self, controller, primary, address, name):
-        """
-        Optional.
-        Super runs all the parent class necessities. You do NOT have
-        to override the __init__ method, but if you do, you MUST call super.
-
-        :param controller: Reference to the Controller class
-        :param primary: Controller address
-        :param address: This nodes address
-        :param name: This nodes name
-        """
         super(CTNode, self).__init__(controller, primary, address, name)
 
     def start(self):
-        """
-        Optional.
-        This method is run once the Node is successfully added to the ISY
-        and we get a return result from Polyglot. Only happens once.
-        """
         self.setDriver('ST', 1)
         self.setDriver('GV0', 0)
         self.setDriver('GV1', 0)
         self.setDriver('GV2', 0)
         pass
 
-    def updateValues(self, power, reactivePower, voltage):
+    def updateValues(self, power, reactivePower, voltage, imported=0, exported=0):
         LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
-        self.setDriver('ST', 2)
         self.setDriver('GV0', power)
         self.setDriver('GV1', reactivePower)
         self.setDriver('GV2', voltage)
@@ -364,56 +336,74 @@ class CTNode(polyinterface.Node):
         LOGGER.debug('CTNode - longPoll')
 
     def setOn(self, command):
-        """
-        Example command received from ISY.
-        Set DON on CTNode.
-        Sets the ST (status) driver to 1 or 'True'
-        """
         self.setDriver('ST', 1)
 
     def setOff(self, command):
-        """
-        Example command received from ISY.
-        Set DOF on CTNode
-        Sets the ST (status) driver to 0 or 'False'
-        """
         self.setDriver('ST', 0)
 
     def query(self,command=None):
-        """
-        Called by ISY to report all drivers for this node. This is done in
-        the parent class, so you don't need to override this method unless
-        there is a need.
-        """
         self.reportDrivers()
 
-    "Hints See: https://github.com/UniversalDevicesInc/hints"
     # hint = [1,2,3,4]
     drivers = [
         {'driver': 'ST', 'value': 0, 'uom': 2},
-        {'driver': 'GV0', 'value': 1, 'uom': 2},
-        {'driver': 'GV1', 'value': 2, 'uom': 2},
-        {'driver': 'GV2', 'value': 3, 'uom': 2}
+        {'driver': 'GV0', 'value': 1, 'uom': 73},
+        {'driver': 'GV1', 'value': 2, 'uom': 0},
+        {'driver': 'GV2', 'value': 3, 'uom': 72},
+        {'driver': 'GV3', 'value': 3, 'uom': 33}
     ]
-    """
-    Optional.
-    This is an array of dictionary items containing the variable names(drivers)
-    values and uoms(units of measure) from ISY. This is how ISY knows what kind
-    of variable to display. Check the UOM's in the WSDK for a complete list.
-    UOM 2 is boolean so the ISY will display 'True/False'
-    """
     id = 'ctnode'
-    """
-    id of the node from the nodedefs.xml that is in the profile.zip. This tells
-    the ISY what fields and commands this node has.
-    """
     commands = {
-                    'DON': setOn, 'DOF': setOff
-                }
-    """
-    This is a dictionary of commands. If ISY sends a command to the NodeServer,
-    this tells it which method to call. DON calls setOn, etc.
-    """
+        'DON': setOn, 'DOF': setOff
+    }
+
+class ChannelNode(polyinterface.Node):
+    def __init__(self, controller, primary, address, name):
+        super(ChannelNode, self).__init__(controller, primary, address, name)
+
+    def start(self):
+        self.setDriver('ST', 1)
+        self.setDriver('GV0', 0)
+        self.setDriver('GV1', 0)
+        self.setDriver('GV2', 0)
+        pass
+
+    def updateValues(self, power, reactivePower, voltage, importedPower, exportedPower):
+        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        self.setDriver('GV0', power)
+        self.setDriver('GV1', reactivePower)
+        self.setDriver('GV2', voltage)
+        self.setDriver('GV3', importedPower)
+        self.setDriver('GV4', exportedPower)
+
+    def shortPoll(self):
+        LOGGER.debug('ChannelNode - shortPoll')
+
+    def longPoll(self):
+        LOGGER.debug('ChannelNode - longPoll')
+
+    def setOn(self, command):
+        self.setDriver('ST', 1)
+
+    def setOff(self, command):
+        self.setDriver('ST', 0)
+
+    def query(self,command=None):
+        self.reportDrivers()
+
+    # hint = [1,2,3,4]
+    drivers = [
+        {'driver': 'ST', 'value': 0, 'uom': 2},
+        {'driver': 'GV0', 'value': 1, 'uom': 73},
+        {'driver': 'GV1', 'value': 2, 'uom': 0},
+        {'driver': 'GV2', 'value': 3, 'uom': 72},
+        {'driver': 'GV3', 'value': 3, 'uom': 30},
+        {'driver': 'GV4', 'value': 3, 'uom': 30}
+    ]
+    id = 'channelnode'
+    commands = {
+        'DON': setOn, 'DOF': setOff
+    }
 
 if __name__ == "__main__":
     try:

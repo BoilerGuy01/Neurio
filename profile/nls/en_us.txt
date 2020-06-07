@@ -13,3 +13,12 @@ ST-ctnode-ST-NAME = Node Status
 ST-ctnode-GV0-NAME = Power
 ST-ctnode-GV1-NAME = Reactive Power
 ST-ctnode-GV2-NAME = Voltage
+
+# channelnode
+ND-channelnode-NAME = Channel
+ST-channelnode-ST-NAME = Node Status
+ST-channelnode-GV0-NAME = Power
+ST-channelnode-GV1-NAME = Reactive Power
+ST-channelnode-GV2-NAME = Voltage
+ST-channelnode-GV3-NAME = Imported Power
+ST-channelnode-GV4-NAME = Exported Power

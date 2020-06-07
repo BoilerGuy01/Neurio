@@ -20,13 +20,31 @@
             </accepts>
         </cmds>
     </nodeDef>
+
 	<!-- ctnode -->
     <nodeDef id="ctnode" nls="ctnode">
         <sts>
             <st id="ST" editor="bool" />
             <st id="GV0" editor="watts" />
-            <st id="GV1" editor="watts" />
+            <st id="GV1" editor="var" />
             <st id="GV2" editor="volts" />
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+        <!-- channelnode -->
+    <nodeDef id="channelnode" nls="channelnode">
+        <sts>
+            <st id="ST" editor="bool" />
+            <st id="GV0" editor="kilowatts" />
+            <st id="GV1" editor="var" />
+            <st id="GV2" editor="volts" />
+            <st id="GV3" editor="energy" />
+            <st id="GV4" editor="energy" />
         </sts>
         <cmds>
             <sends />
