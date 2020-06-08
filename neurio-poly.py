@@ -42,16 +42,15 @@ class Channel:
         self.exported = exported
         self.reactivePower = reactivePower
         self.voltage = voltage
-    power: float
-    imported: float
-    exported: float
-    reactivePower: float
-    voltage: float
 
-def pollSensor():
-        url = 'http://%s/both_tables.html' % "10.0.1.28"
-        LOGGER.debug('shortPoll - going to check Neurio stats @ %s", url')
-        with urlopen("http://10.0.1.28/both_tables.html") as response:
+def pollSensor(self):
+        LOGGER.debug('self.polyConfig[customParams][NeurioIP] = {}'.format(self.polyConfig['customParams']['NeurioIP']))
+        LOGGER.debug('self.polyConfig[customParams] = {}'.format(self.polyConfig['customParams']))
+        LOGGER.debug('self.NeurioIP = {}'.format(self.polyConfig))
+        LOGGER.debug('self.polyConfig = {}'.format(self.NeurioIP))
+        url = 'http://%s/both_tables.html' % self.NeurioIP
+        LOGGER.debug('shortPoll - going to check Neurio stats @ {}'.format(url))
+        with urlopen(url) as response:
                 response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
         LOGGER.debug('Neurio reply: {}'.format(response_content))
         root = ET.fromstring(response_content)
@@ -158,7 +157,7 @@ class Controller(polyinterface.Controller):
         or longPoll. No need to Super this method the parent version does nothing.
         The timer can be overriden in the server.json.
         """
-        cts, channels = pollSensor()
+        cts, channels = pollSensor(self)
 
         for i, val in enumerate(cts):
                 LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
@@ -200,7 +199,7 @@ class Controller(polyinterface.Controller):
 
         LOGGER.debug("discover")
         # Poll the sensor and add nodes
-        cts, channels = pollSensor()
+        cts, channels = pollSensor(self)
         for i, val in enumerate(cts):
                 LOGGER.debug('Adding CT {}'.format(i))
                 ctaddr = "ct"+str(i+1)
@@ -244,9 +243,6 @@ class Controller(polyinterface.Controller):
             self.hb = 0
 
     def check_params(self):
-        """
-        This is an example if using custom Params for user and password and an example with a Dictionary
-        """
         self.removeNoticesAll()
         self.addNotice('Hey there, my IP is {}'.format(self.poly.network_interface['addr']),'hello')
         self.addNotice('Hello Friends! (without key)')
@@ -265,15 +261,27 @@ class Controller(polyinterface.Controller):
             self.password = default_password
             LOGGER.error('check_params: password not defined in customParams, please add it.  Using {}'.format(self.password))
             st = False
+
+        if 'NeurioIP' in self.polyConfig['customParams']:
+            self.NeurioIP = self.polyConfig['customParams']['NeurioIP']
+            LOGGER.error('check_params: NeurioIP exists {}'.format(self.polyConfig['customParams']['NeurioIP']))
+            if self.NeurioIP == '':
+                LOGGER.error('check_params: NeurioIP is empty')
+                self.NeurioIP = '127.0.0.1'
+                self.polyConfig['customParams'].update({'NeurioIP': self.NeurioIP})
+                LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
+                st = False
+        else:
+            LOGGER.error('check_params: NeurioIP exists {}'.format(self.NeurioIP))
+            self.NeurioIP = '127.0.0.1'
+            customParams.update({'NeurioIP': self.NeurioIP})
+            self.poly.saveCustomParams(self.polyconfig['customParams'])
+            LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
+            st = False
+            
+
         # Make sure they are in the params
         self.addCustomParam({'NeurioIP': ''})
-
-        # Add a notice if they need to change the user/password from the default.
-        if self.user == default_user or self.password == default_password:
-            # This doesn't pass a key to test the old way.
-            self.addNotice('Please set proper user and password in configuration page, and restart this nodeserver')
-        # This one passes a key to test the new way.
-        self.addNotice('This is a test','test')
 
     def remove_notice_test(self,command):
         LOGGER.info('remove_notice_test: notices={}'.format(self.poly.config['notices']))
@@ -394,11 +402,11 @@ class ChannelNode(polyinterface.Node):
     # hint = [1,2,3,4]
     drivers = [
         {'driver': 'ST', 'value': 0, 'uom': 2},
-        {'driver': 'GV0', 'value': 1, 'uom': 73},
+        {'driver': 'GV0', 'value': 1, 'uom': 30},
         {'driver': 'GV1', 'value': 2, 'uom': 0},
         {'driver': 'GV2', 'value': 3, 'uom': 72},
-        {'driver': 'GV3', 'value': 3, 'uom': 30},
-        {'driver': 'GV4', 'value': 3, 'uom': 30}
+        {'driver': 'GV3', 'value': 3, 'uom': 33},
+        {'driver': 'GV4', 'value': 3, 'uom': 33}
     ]
     id = 'channelnode'
     commands = {
