@@ -23,6 +23,8 @@ modules globally. Use the --user flag, not sudo.
 """
 
 LOGGER = polyinterface.LOGGER
+_PARM_IP_ADDRESS_NAME = "NeurioIP"
+
 """
 polyinterface has a LOGGER that is created by default and logs to:
 logs/debug.log
@@ -44,9 +46,9 @@ class Channel:
         self.voltage = voltage
 
 def pollSensor(self):
-        LOGGER.debug('self.polyConfig[customParams][NeurioIP] = {}'.format(self.polyConfig['customParams']['NeurioIP']))
+        LOGGER.debug('self.polyConfig[customParams][_PARM_IP_ADDRESS_NAME] = {}'.format(self.polyConfig['customParams'][_PARM_IP_ADDRESS_NAME]))
         LOGGER.debug('self.polyConfig[customParams] = {}'.format(self.polyConfig['customParams']))
-        LOGGER.debug('self.NeurioIP = {}'.format(self.polyConfig))
+        LOGGER.debug('self.NeurioIP = {}'.format(self.NeurioIP))
         LOGGER.debug('self.polyConfig = {}'.format(self.NeurioIP))
         url = 'http://%s/both_tables.html' % self.NeurioIP
         LOGGER.debug('shortPoll - going to check Neurio stats @ {}'.format(url))
@@ -134,14 +136,6 @@ class Controller(polyinterface.Controller):
         self.poly.onConfig(self.process_config)
 
     def start(self):
-        """
-        Optional.
-        Polyglot v2 Interface startup done. Here is where you start your integration.
-        This will run, once the NodeServer connects to Polyglot and gets it's config.
-        In this example I am calling a discovery method. While this is optional,
-        this is where you should start. No need to Super this method, the parent
-        version does nothing.
-        """
         # This grabs the server.json data and checks profile_version is up to date
         serverdata = self.poly.get_server_data()
         LOGGER.info('Started Neurio NodeServer {}'.format(serverdata['version']))
@@ -243,45 +237,27 @@ class Controller(polyinterface.Controller):
             self.hb = 0
 
     def check_params(self):
+        default_ip = "0.0.0.0"
         self.removeNoticesAll()
-        self.addNotice('Hey there, my IP is {}'.format(self.poly.network_interface['addr']),'hello')
-        self.addNotice('Hello Friends! (without key)')
-        default_user = "YourUserName"
-        default_password = "YourPassword"
-        if 'user' in self.polyConfig['customParams']:
-            self.user = self.polyConfig['customParams']['user']
-        else:
-            self.user = default_user
-            LOGGER.error('check_params: user not defined in customParams, please add it.  Using {}'.format(self.user))
-            st = False
-
-        if 'password' in self.polyConfig['customParams']:
-            self.password = self.polyConfig['customParams']['password']
-        else:
-            self.password = default_password
-            LOGGER.error('check_params: password not defined in customParams, please add it.  Using {}'.format(self.password))
-            st = False
 
         if 'NeurioIP' in self.polyConfig['customParams']:
+            LOGGER.error('NeurioIP found in customParams')
             self.NeurioIP = self.polyConfig['customParams']['NeurioIP']
-            LOGGER.error('check_params: NeurioIP exists {}'.format(self.polyConfig['customParams']['NeurioIP']))
+            LOGGER.error('check_params: NeurioIP is: {}'.format(self.NeurioIP))
             if self.NeurioIP == '':
                 LOGGER.error('check_params: NeurioIP is empty')
-                self.NeurioIP = '127.0.0.1'
-                self.polyConfig['customParams'].update({'NeurioIP': self.NeurioIP})
-                LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
+                self.NeurioIP = default_ip
+                LOGGER.error('check_params: NeurioIP is defined in customParams, but is blank - please update it.  Using {}'.format(self.NeurioIP))
                 st = False
         else:
-            LOGGER.error('check_params: NeurioIP exists {}'.format(self.NeurioIP))
-            self.NeurioIP = '127.0.0.1'
-            customParams.update({'NeurioIP': self.NeurioIP})
-            self.poly.saveCustomParams(self.polyconfig['customParams'])
+            LOGGER.error('check_params: NeurioIP does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            self.NeurioIP = default_ip
             LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
             st = False
             
-
+        LOGGER.error('Done checking: NeurioIP = {}'.format(self.NeurioIP))
         # Make sure they are in the params
-        self.addCustomParam({'NeurioIP': ''})
+        self.addCustomParam({'NeurioIP': self.NeurioIP})
 
     def remove_notice_test(self,command):
         LOGGER.info('remove_notice_test: notices={}'.format(self.poly.config['notices']))
