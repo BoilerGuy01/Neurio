@@ -36,8 +36,6 @@ def pollSensor(self):
         # LOGGER.debug('Neurio reply: {}'.format(response_content))
         root = ET.fromstring(response_content)
         tableIndex=0
-        cts = []
-        channels = []
         for table in root:
                 rowIndex = 0
                 for row in table:
@@ -56,6 +54,7 @@ def pollSensor(self):
                                                         ctNodeAddr = "ct"+str(rowIndex-1)
                                                         LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
                                                         self.nodes[ctNodeAddr].setDriver('GV0', power)
+                                                        self.nodes[ctNodeAddr].setDriver('ST', 1)
                                                 elif columnIndex == 2:
                                                         reactivePower = column.text
                                                         ctNodeAddr = "ct"+str(rowIndex-1)
@@ -63,8 +62,6 @@ def pollSensor(self):
                                                         self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
                                                 elif columnIndex == 3:
                                                         voltage = column.text
-                                                        newCT = CT(power, reactivePower, voltage)
-                                                        cts.append(newCT)
                                                         ctNodeAddr = "ct"+str(rowIndex-1)
                                                         LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
                                                         self.nodes[ctNodeAddr].setDriver('GV2', voltage)
@@ -75,6 +72,7 @@ def pollSensor(self):
                                                         channelNodeAddr = "channel"+str(rowIndex-1)
                                                         LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
                                                         self.nodes[channelNodeAddr].setDriver('GV0', power)
+                                                        self.nodes[channelNodeAddr].setDriver('ST', 1)
                                                 elif columnIndex == 2:
                                                         imported = column.text
                                                         channelNodeAddr = "channel"+str(rowIndex-1)
@@ -92,15 +90,13 @@ def pollSensor(self):
                                                         self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
                                                 elif columnIndex == 5:
                                                         voltage = column.text
-                                                        newChannel = Channel(power, imported, exported, reactivePower, voltage)
-                                                        channels.append(newChannel)
                                                         channelNodeAddr = "channel"+str(rowIndex-1)
                                                         LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
                                                         self.nodes[channelNodeAddr].setDriver('GV2', voltage)
                                 columnIndex += 1
                         rowIndex += 1
                 tableIndex += 1
-        return cts, channels
+        return
 
 class Controller(polyinterface.Controller):
     def __init__(self, polyglot):
@@ -122,7 +118,7 @@ class Controller(polyinterface.Controller):
         pollSensor(self)
 
     def shortPoll(self):
-        cts, channels = pollSensor(self)
+        pollSensor(self)
         LOGGER.debug('shortPoll - done checking Neurio status')
 
     def longPoll(self):
@@ -296,7 +292,7 @@ class Controller(polyinterface.Controller):
         'REMOVE_NOTICE_TEST': remove_notice_test,
         'SET_DEBUG_LEVEL': set_debug_level
     }
-    drivers = [{'driver': 'ST',  'value': 1, 'uom': 2},
+    drivers = [{'driver': 'ST',  'value': 0, 'uom': 2},
                {'driver': 'GV1', 'value': 0, 'uom': 25}]
 
 
@@ -325,10 +321,10 @@ class CTNode(polyinterface.Node):
     # hint = [1,2,3,4]
     drivers = [
         {'driver':  'ST', 'value': 0, 'uom': 2},
-        {'driver': 'GV0', 'value': 1, 'uom': 73},
-        {'driver': 'GV1', 'value': 2, 'uom': 0},
-        {'driver': 'GV2', 'value': 3, 'uom': 72},
-        {'driver': 'GV3', 'value': 3, 'uom': 33}
+        {'driver': 'GV0', 'value': 0, 'uom': 73},
+        {'driver': 'GV1', 'value': 0, 'uom': 0},
+        {'driver': 'GV2', 'value': 0, 'uom': 72},
+        {'driver': 'GV3', 'value': 0, 'uom': 33}
     ]
     id = 'ctnode'
     commands = {
