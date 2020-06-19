@@ -23,8 +23,9 @@ modules globally. Use the --user flag, not sudo.
 """
 
 LOGGER = polyinterface.LOGGER
-LOGGER.setLevel(logging.DEBUG)
 #LOGGER.setLevel(logging.WARNING)
+LOGGER.setLevel(logging.INFO)
+#LOGGER.setLevel(logging.DEBUG)
 _PARM_IP_ADDRESS_NAME = "NeurioIP"
 
 """
@@ -48,12 +49,8 @@ class Channel:
         self.voltage = voltage
 
 def pollSensor(self):
-        # LOGGER.debug('self.polyConfig[customParams][_PARM_IP_ADDRESS_NAME] = {}'.format(self.polyConfig['customParams'][_PARM_IP_ADDRESS_NAME]))
-        # LOGGER.debug('self.polyConfig[customParams] = {}'.format(self.polyConfig['customParams']))
-        # LOGGER.debug('self.NeurioIP = {}'.format(self.NeurioIP))
-        # LOGGER.debug('self.polyConfig = {}'.format(self.NeurioIP))
         url = 'http://%s/both_tables.html' % self.NeurioIP
-        LOGGER.warning('shortPoll - going to check Neurio stats @ {}'.format(url))
+        LOGGER.info('shortPoll - going to check Neurio stats @ {}'.format(url))
         with urlopen(url) as response:
                 response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
         # LOGGER.debug('Neurio reply: {}'.format(response_content))
@@ -71,29 +68,55 @@ def pollSensor(self):
                         imported = 0
                         exported = 0
                         for column in row:
+                                # LOGGER.debug("tableIndex = {}, columnIndex = {}, rowIndex = {}".format(tableIndex, columnIndex, rowIndex))
                                 if rowIndex > 1:
                                         if tableIndex == 0:
                                                 if columnIndex == 1:
                                                         power = column.text
+                                                        ctNodeAddr = "ct"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
+                                                        self.nodes[ctNodeAddr].setDriver('GV0', power)
                                                 elif columnIndex == 2:
                                                         reactivePower = column.text
+                                                        ctNodeAddr = "ct"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].reactivePower = {}'.format(ctNodeAddr, reactivePower))
+                                                        self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
                                                 elif columnIndex == 3:
                                                         voltage = column.text
                                                         newCT = CT(power, reactivePower, voltage)
                                                         cts.append(newCT)
+                                                        ctNodeAddr = "ct"+str(rowIndex-1)
+                                                        LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
+                                                        self.nodes[ctNodeAddr].setDriver('GV2', voltage)
+                                                        LOGGER.debug('nodes[{}].voltage = {}'.format(ctNodeAddr, voltage))
                                         else:
                                                 if columnIndex == 1:
                                                         power = float(column.text)
+                                                        channelNodeAddr = "channel"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
+                                                        self.nodes[channelNodeAddr].setDriver('GV0', power)
                                                 elif columnIndex == 2:
                                                         imported = column.text
+                                                        channelNodeAddr = "channel"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].imported = {}'.format(channelNodeAddr, imported))
+                                                        self.nodes[channelNodeAddr].setDriver('GV3', imported)
                                                 elif columnIndex == 3:
                                                         exported = column.text
+                                                        channelNodeAddr = "channel"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].exported = {}'.format(channelNodeAddr, exported))
+                                                        self.nodes[channelNodeAddr].setDriver('GV4', exported)
                                                 elif columnIndex == 4:
                                                         reactivePower = column.text
+                                                        channelNodeAddr = "channel"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].reactivePower = {}'.format(channelNodeAddr, reactivePower))
+                                                        self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
                                                 elif columnIndex == 5:
                                                         voltage = column.text
                                                         newChannel = Channel(power, imported, exported, reactivePower, voltage)
                                                         channels.append(newChannel)
+                                                        channelNodeAddr = "channel"+str(rowIndex-1)
+                                                        LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
+                                                        self.nodes[channelNodeAddr].setDriver('GV2', voltage)
                                 columnIndex += 1
                         rowIndex += 1
                 tableIndex += 1
@@ -145,24 +168,19 @@ class Controller(polyinterface.Controller):
         self.check_params()
         self.discover()
         self.poly.add_custom_config_docs("")
+        pollSensor(self)
 
     def shortPoll(self):
-        """
-        Optional.
-        This runs every 10 seconds. You would probably update your nodes either here
-        or longPoll. No need to Super this method the parent version does nothing.
-        The timer can be overriden in the server.json.
-        """
         cts, channels = pollSensor(self)
 
-        for i, val in enumerate(cts):
-                # LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
-                ctNodeAddr = "ct"+str(i+1)
-                self.nodes[ctNodeAddr].updateValues(val.power, val.reactivePower, val.voltage)
-        for i, val in enumerate(channels):
-                # LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
-                channelNodeAddr = "channel"+str(i+1)
-                self.nodes[channelNodeAddr].updateValues(val.power, val.reactivePower, val.voltage, val.imported, val.exported)
+        # for i, val in enumerate(cts):
+        #         # LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
+        #         ctNodeAddr = "ct"+str(i+1)
+        #         self.nodes[ctNodeAddr].updateValues(val.power, val.reactivePower, val.voltage)
+        # for i, val in enumerate(channels):
+        #         # LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
+        #         channelNodeAddr = "channel"+str(i+1)
+        #         self.nodes[channelNodeAddr].updateValues(val.power, val.reactivePower, val.voltage, val.imported, val.exported)
         LOGGER.debug('shortPoll - done checking Neurio status')
 
     def longPoll(self):
@@ -187,27 +205,19 @@ class Controller(polyinterface.Controller):
             self.nodes[node].reportDrivers()
 
     def discover(self, *args, **kwargs):
-        """
-        Example
-        Do discovery here. Does not have to be called discovery. Called from example
-        controller start method and from DISCOVER command recieved from ISY as an exmaple.
-        """
-
-        LOGGER.debug("discover")
-        # Poll the sensor and add nodes
-        cts, channels = pollSensor(self)
-        for i, val in enumerate(cts):
+        # add nodes
+        for i in range(1, int(self.NumCTs)+1):
                 LOGGER.debug('Adding CT {}'.format(i))
-                ctaddr = "ct"+str(i+1)
-                ctname = "CT"+str(i+1)
+                ctaddr = "ct"+str(i)
+                ctname = "CT"+str(i)
                 self.addNode(CTNode(self, self.address, ctaddr, ctname))
-        for i, val in enumerate(channels):
+          
+        for i in range(1, int(self.NumChannels)+1):
                 LOGGER.debug('Adding Channel {}'.format(i))
-                channeladdr = "channel"+str(i+1)
-                channelname = "Channel"+str(i+1)
+                channeladdr = "channel"+str(i)
+                channelname = "Channel"+str(i)
                 self.addNode(ChannelNode(self, self.address, channeladdr, channelname))
-
-
+          
     def delete(self):
         """
         Example
@@ -245,53 +255,53 @@ class Controller(polyinterface.Controller):
         self.removeNoticesAll()
 
         if 'NeurioIP' in self.polyConfig['customParams']:
-            LOGGER.error('NeurioIP found in customParams')
+            LOGGER.debug('NeurioIP found in customParams')
             self.NeurioIP = self.polyConfig['customParams']['NeurioIP']
-            LOGGER.error('check_params: NeurioIP is: {}'.format(self.NeurioIP))
+            LOGGER.debug('check_params: NeurioIP is: {}'.format(self.NeurioIP))
             if self.NeurioIP == '':
-                LOGGER.error('check_params: NeurioIP is empty')
+                LOGGER.debug('check_params: NeurioIP is empty')
                 self.NeurioIP = default_ip
-                LOGGER.error('check_params: NeurioIP is defined in customParams, but is blank - please update it.  Using {}'.format(self.NeurioIP))
+                LOGGER.debug('check_params: NeurioIP is defined in customParams, but is blank - please update it.  Using {}'.format(self.NeurioIP))
                 self.addNotice('Set \'NeurioIP\' and then restart')
                 st = False
         else:
-            LOGGER.error('check_params: NeurioIP does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            LOGGER.debug('check_params: NeurioIP does not exist self.polyCconfig: {}'.format(self.polyConfig))
             self.NeurioIP = default_ip
-            LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
+            LOGGER.debug('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
             self.addNotice('Set \'NeurioIP\' and then restart')
             st = False
 
         if 'NumChannels' in self.polyConfig['customParams']:
-            LOGGER.error('NumChannels found in customParams')
+            LOGGER.debug('NumChannels found in customParams')
             self.NumChannels = self.polyConfig['customParams']['NumChannels']
-            LOGGER.error('check_params: NumChannels is: {}'.format(self.NumChannels))
+            LOGGER.debug('check_params: NumChannels is: {}'.format(self.NumChannels))
             if self.NumChannels == '':
-                LOGGER.error('check_params: NumChannels is empty')
+                LOGGER.debug('check_params: NumChannels is empty')
                 self.NumChannels = default_ip
-                LOGGER.error('check_params: NumChannels is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumChannels))
+                LOGGER.debug('check_params: NumChannels is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumChannels))
                 self.addNotice('Set \'NumChannels\' and then restart')
                 st = False
         else:
-            LOGGER.error('check_params: NumChannels does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            LOGGER.debug('check_params: NumChannels does not exist self.polyCconfig: {}'.format(self.polyConfig))
             self.NumChannels = default_numchannels
-            LOGGER.error('check_params: NumChannels not defined in customParams, please update it.  Using {}'.format(self.NumChannels))
+            LOGGER.debug('check_params: NumChannels not defined in customParams, please update it.  Using {}'.format(self.NumChannels))
             self.addNotice('Set \'NumChannels\' and then restart')
             st = False
 
         if 'NumCTs' in self.polyConfig['customParams']:
-            LOGGER.error('NumCTs found in customParams')
+            LOGGER.debug('NumCTs found in customParams')
             self.NumCTs = self.polyConfig['customParams']['NumCTs']
-            LOGGER.error('check_params: NumCTs is: {}'.format(self.NumCTs))
+            LOGGER.debug('check_params: NumCTs is: {}'.format(self.NumCTs))
             if self.NumCTs == '':
-                LOGGER.error('check_params: NumCTs is empty')
+                LOGGER.debug('check_params: NumCTs is empty')
                 self.NumCTs = default_ip
-                LOGGER.error('check_params: NumCTs is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumCTs))
+                LOGGER.debug('check_params: NumCTs is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumCTs))
                 self.addNotice('Set \'NumCTs\' and then restart')
                 st = False
         else:
-            LOGGER.error('check_params: NumCTs does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            LOGGER.debug('check_params: NumCTs does not exist self.polyCconfig: {}'.format(self.polyConfig))
             self.NumCTs = default_numcts
-            LOGGER.error('check_params: NumCTs not defined in customParams, please update it.  Using {}'.format(self.NumCTs))
+            LOGGER.debug('check_params: NumCTs not defined in customParams, please update it.  Using {}'.format(self.NumCTs))
             self.addNotice('Set \'NumCTs\' and then restart')
             st = False
 
@@ -301,7 +311,7 @@ class Controller(polyinterface.Controller):
         if self.NumCTs == 0:
             self.addNotice('Set \'NumCTs\' and then restart')
 
-        LOGGER.error('Done checking: NeurioIP = {}'.format(self.NeurioIP))
+        LOGGER.debug('Done checking: NeurioIP = {}'.format(self.NeurioIP))
         # Make sure they are in the params
         self.addCustomParam({'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
 
@@ -347,17 +357,17 @@ class CTNode(polyinterface.Node):
         super(CTNode, self).__init__(controller, primary, address, name)
 
     def start(self):
-        self.setDriver('ST', 1)
-        self.setDriver('GV0', 0)
-        self.setDriver('GV1', 0)
-        self.setDriver('GV2', 0)
+        # self.setDriver('ST', 1)
+        # self.setDriver('GV0', 0)
+        # self.setDriver('GV1', 0)
+        # self.setDriver('GV2', 0)
         pass
 
     def updateValues(self, power, reactivePower, voltage, imported=0, exported=0):
-        # LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
-        self.setDriver('GV0', power)
-        self.setDriver('GV1', reactivePower)
-        self.setDriver('GV2', voltage)
+        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        # self.setDriver('GV0', power)
+        # self.setDriver('GV1', reactivePower)
+        # self.setDriver('GV2', voltage)
 
     def shortPoll(self):
         LOGGER.debug('CTNode - shortPoll')
@@ -392,19 +402,19 @@ class ChannelNode(polyinterface.Node):
         super(ChannelNode, self).__init__(controller, primary, address, name)
 
     def start(self):
-        self.setDriver('ST', 1)
-        self.setDriver('GV0', 0)
-        self.setDriver('GV1', 0)
-        self.setDriver('GV2', 0)
+        # self.setDriver('ST', 1)
+        # self.setDriver('GV0', 0)
+        # self.setDriver('GV1', 0)
+        # self.setDriver('GV2', 0)
         pass
 
     def updateValues(self, power, reactivePower, voltage, importedPower, exportedPower):
-        # LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
-        self.setDriver('GV0', power)
-        self.setDriver('GV1', reactivePower)
-        self.setDriver('GV2', voltage)
-        self.setDriver('GV3', importedPower)
-        self.setDriver('GV4', exportedPower)
+        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        # self.setDriver('GV0', power)
+        # self.setDriver('GV1', reactivePower)
+        # self.setDriver('GV2', voltage)
+        # self.setDriver('GV3', importedPower)
+        # self.setDriver('GV4', exportedPower)
 
     def shortPoll(self):
         LOGGER.debug('ChannelNode - shortPoll')
@@ -423,12 +433,12 @@ class ChannelNode(polyinterface.Node):
 
     # hint = [1,2,3,4]
     drivers = [
-        {'driver': 'ST', 'value': 0, 'uom': 2},
-        {'driver': 'GV0', 'value': 1, 'uom': 30},
-        {'driver': 'GV1', 'value': 2, 'uom': 0},
-        {'driver': 'GV2', 'value': 3, 'uom': 72},
-        {'driver': 'GV3', 'value': 3, 'uom': 33},
-        {'driver': 'GV4', 'value': 3, 'uom': 33}
+        # {'driver': 'ST', 'value': 0, 'uom': 2},
+        # {'driver': 'GV0', 'value': 1, 'uom': 30},
+        # {'driver': 'GV1', 'value': 2, 'uom': 0},
+        # {'driver': 'GV2', 'value': 3, 'uom': 72},
+        # {'driver': 'GV3', 'value': 3, 'uom': 33},
+        # {'driver': 'GV4', 'value': 3, 'uom': 33}
     ]
     id = 'channelnode'
     commands = {
