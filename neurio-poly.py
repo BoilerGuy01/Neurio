@@ -158,7 +158,6 @@ class Controller(polyinterface.Controller):
         # this seems to get called twice for every change, why?
         # What does config represent?
         LOGGER.info("process_config: Enter config={}".format(config));
-        check_params(self)
         LOGGER.info("process_config: Exit");
 
     def heartbeat(self,init=False):
@@ -175,8 +174,8 @@ class Controller(polyinterface.Controller):
 
     def check_params(self):
         default_ip = "0.0.0.0"
-        default_numcts = 0
-        default_numchannels = 0
+        default_numcts = 4
+        default_numchannels = 6
         self.removeNoticesAll()
 
         if 'DebugLevel' in self.polyConfig['customParams']:
@@ -227,7 +226,7 @@ class Controller(polyinterface.Controller):
             LOGGER.debug('check_params: NumChannels is: {}'.format(self.NumChannels))
             if self.NumChannels == '':
                 LOGGER.debug('check_params: NumChannels is empty')
-                self.NumChannels = default_ip
+                self.NumChannels = default_numchannels
                 LOGGER.debug('check_params: NumChannels is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumChannels))
                 self.addNotice('Set \'NumChannels\' and then restart')
                 st = False
@@ -244,7 +243,7 @@ class Controller(polyinterface.Controller):
             LOGGER.debug('check_params: NumCTs is: {}'.format(self.NumCTs))
             if self.NumCTs == '':
                 LOGGER.debug('check_params: NumCTs is empty')
-                self.NumCTs = default_ip
+                self.NumCTs = default_cts
                 LOGGER.debug('check_params: NumCTs is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumCTs))
                 self.addNotice('Set \'NumCTs\' and then restart')
                 st = False
