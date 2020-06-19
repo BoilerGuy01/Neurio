@@ -5,4 +5,7 @@
   <editor id="kilowatts">  <range uom="30" /> </editor>
   <editor id="volts">  <range uom="72" /> </editor>
   <editor id="energy"> <range uom="33" /> </editor>
+  <editor id="DEBUG_LEVEL_RANGE">
+    <range uom="25" subset="10,20,30" nls="EN_I_DEBUG_LEVEL" />
+  </editor>
 </editors>

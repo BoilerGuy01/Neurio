@@ -24,8 +24,8 @@ modules globally. Use the --user flag, not sudo.
 
 LOGGER = polyinterface.LOGGER
 #LOGGER.setLevel(logging.WARNING)
-LOGGER.setLevel(logging.INFO)
-#LOGGER.setLevel(logging.DEBUG)
+#LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 _PARM_IP_ADDRESS_NAME = "NeurioIP"
 
 """
@@ -164,6 +164,9 @@ class Controller(polyinterface.Controller):
         # This grabs the server.json data and checks profile_version is up to date
         serverdata = self.poly.get_server_data()
         LOGGER.info('Started Neurio NodeServer {}'.format(serverdata['version']))
+        LOGGER.debug('GV1=%s',self.getDriver('GV1'))
+        self.setDriver('GV2', 10)
+        LOGGER.debug('GV1=%s',self.getDriver('GV1'))
         self.heartbeat(0)
         self.check_params()
         self.discover()
@@ -234,6 +237,7 @@ class Controller(polyinterface.Controller):
         # this seems to get called twice for every change, why?
         # What does config represent?
         LOGGER.info("process_config: Enter config={}".format(config));
+        check_params(self)
         LOGGER.info("process_config: Exit");
 
     def heartbeat(self,init=False):
@@ -253,6 +257,31 @@ class Controller(polyinterface.Controller):
         default_numcts = 0
         default_numchannels = 0
         self.removeNoticesAll()
+
+        if 'DebugLevel' in self.polyConfig['customParams']:
+            LOGGER.debug('DebugLevel found in customParams')
+            self.DebugLevel = self.polyConfig['customParams']['DebugLevel']
+            LOGGER.debug('check_params: DebugLevel is: {}'.format(self.DebugLevel))
+            if self.DebugLevel == '':
+                LOGGER.debug('check_params: DebugLevel is empty')
+                self.DebugLevel = int(logging.INFO)
+                LOGGER.debug('check_params: DebugLevel is defined in customParams, but is blank - please update it.  Using {}'.format(self.DebugLevel))
+                self.addNotice('Set \'DebugLevel\' and then restart')
+                st = False
+        else:
+            LOGGER.debug('check_params: DebugLevel does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            self.DebugLevel = int(logging.INFO)
+            LOGGER.debug('check_params: DebugLevel not defined in customParams, setting to {}'.format(self.DebugLevel))
+            st = False
+
+        # convert string to int
+        self.DebugLevel = int(self.DebugLevel)
+
+        # Set the debug level based on parameter
+        LOGGER.setLevel(self.DebugLevel)
+        LOGGER.warning('Setting debug level to {}'.format(self.DebugLevel))
+        self.setDriver('GV1', self.DebugLevel)
+        LOGGER.warning('Done setting debug level to {}'.format(self.DebugLevel))
 
         if 'NeurioIP' in self.polyConfig['customParams']:
             LOGGER.debug('NeurioIP found in customParams')
@@ -312,8 +341,9 @@ class Controller(polyinterface.Controller):
             self.addNotice('Set \'NumCTs\' and then restart')
 
         LOGGER.debug('Done checking: NeurioIP = {}'.format(self.NeurioIP))
+
         # Make sure they are in the params
-        self.addCustomParam({'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
+        self.addCustomParam({'DebugLevel': self.DebugLevel, 'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
 
     def remove_notice_test(self,command):
         LOGGER.info('remove_notice_test: notices={}'.format(self.poly.config['notices']))
@@ -329,6 +359,19 @@ class Controller(polyinterface.Controller):
         LOGGER.info('update_profile:')
         st = self.poly.installprofile()
         return st
+
+    def set_debug_level(self,command):
+        LOGGER.info('set_debug_level: command= {}'.format(command))
+        LOGGER.info('set_debug_level: value  = {}'.format(command['value']))
+        self.DebugLevel = int(command['value'])
+        LOGGER.info('set_debug_level: logging.DEBUG   = {}'.format(logging.DEBUG))
+        LOGGER.info('set_debug_level: logging.INFO    = {}'.format(logging.INFO))
+        LOGGER.info('set_debug_level: logging.WARNING = {}'.format(logging.WARNING))
+        LOGGER.setLevel(self.DebugLevel)
+        self.setDriver('GV1', self.DebugLevel)
+
+        # Make sure they are in the params
+        self.addCustomParam({'DebugLevel': self.DebugLevel, 'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
 
     """
     Optional.
@@ -346,10 +389,11 @@ class Controller(polyinterface.Controller):
         'DISCOVER': discover,
         'UPDATE_PROFILE': update_profile,
         'REMOVE_NOTICES_ALL': remove_notices_all,
-        'REMOVE_NOTICE_TEST': remove_notice_test
+        'REMOVE_NOTICE_TEST': remove_notice_test,
+        'SET_DEBUG_LEVEL': set_debug_level
     }
-    drivers = [{'driver': 'ST', 'value': 1, 'uom': 2}]
-
+    drivers = [{'driver': 'ST',  'value': 1, 'uom': 2},
+               {'driver': 'GV1', 'value': 0, 'uom': 25}]
 
 
 class CTNode(polyinterface.Node):

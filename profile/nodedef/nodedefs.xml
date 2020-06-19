@@ -5,7 +5,8 @@
         <editors />
         <sts>
 		<st id="ST" editor="bool" />
-		</sts>
+                <st id="GV1" editor="DEBUG_LEVEL_RANGE" hide="T"/>
+	</sts>
         <cmds>
             <sends>
               <cmd id="DON" />
@@ -17,6 +18,9 @@
               <cmd id="REMOVE_NOTICES_ALL" />
               <cmd id="REMOVE_NOTICE_TEST" />
               <cmd id="UPDATE_PROFILE" />
+              <cmd id="SET_DEBUG_LEVEL">
+                <p id="" editor="DEBUG_LEVEL_RANGE" init="GV1" optional="F"/>
+              </cmd>
             </accepts>
         </cmds>
     </nodeDef>
