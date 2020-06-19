@@ -1,6 +1,8 @@
 <editors>
-    <!-- Boolean -->
-    <editor id="bool">
-        <range uom="2" subset="0,1" />
-    </editor>
+  <editor id="bool">   <range uom="2" subset="0,1" /> </editor>
+  <editor id="watts">  <range uom="73" /> </editor>
+  <editor id="var">  <range uom="0" /> </editor>
+  <editor id="kilowatts">  <range uom="30" /> </editor>
+  <editor id="volts">  <range uom="72" /> </editor>
+  <editor id="energy"> <range uom="33" /> </editor>
 </editors>

@@ -4,7 +4,7 @@
     <nodeDef id="controller" nls="ctl">
         <editors />
         <sts>
-			<st id="ST" editor="bool" />
+		<st id="ST" editor="bool" />
 		</sts>
         <cmds>
             <sends>
@@ -20,17 +20,35 @@
             </accepts>
         </cmds>
     </nodeDef>
-	<!-- templatenodeid -->
-    <nodeDef id="templatenodeid" nls="tmplnode">
-        <editors />
+
+	<!-- ctnode -->
+    <nodeDef id="ctnode" nls="ctnode">
         <sts>
             <st id="ST" editor="bool" />
+            <st id="GV0" editor="watts" />
+            <st id="GV1" editor="var" />
+            <st id="GV2" editor="volts" />
         </sts>
         <cmds>
             <sends />
             <accepts>
-                <cmd id="DON" />
-                <cmd id="DOF" />
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+        <!-- channelnode -->
+    <nodeDef id="channelnode" nls="channelnode">
+        <sts>
+            <st id="ST" editor="bool" />
+            <st id="GV0" editor="kilowatts" />
+            <st id="GV1" editor="var" />
+            <st id="GV2" editor="volts" />
+            <st id="GV3" editor="energy" />
+            <st id="GV4" editor="energy" />
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
             </accepts>
         </cmds>
     </nodeDef>

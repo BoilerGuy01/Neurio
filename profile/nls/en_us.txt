@@ -1,5 +1,5 @@
 # controller
-ND-controller-NAME = Template NodeServer Controller
+ND-controller-NAME = Neurio NodeServer Controller
 CMD-ctl-QUERY"-NAME = Query
 CMD-ctl-DISCOVER-NAME = Re-Discover
 CMD-ctl-UPDATE_PROFILE-NAME = Update Profile
@@ -7,6 +7,18 @@ CMD-ctl-REMOVE_NOTICES_ALL-NAME = Remove All Notices
 CMD-ctl-REMOVE_NOTICE_TEST-NAME = Remove Notice Test
 ST-ctl-ST-NAME = NodeServer Online
 
-# mynodetype
-ND-tmplnode-NAME = Template Node
-ST-tmplnode-ST-NAME = Node Status
+# ctnode
+ND-ctnode-NAME = CT
+ST-ctnode-ST-NAME = Node Status
+ST-ctnode-GV0-NAME = Power
+ST-ctnode-GV1-NAME = Reactive Power
+ST-ctnode-GV2-NAME = Voltage
+
+# channelnode
+ND-channelnode-NAME = Channel
+ST-channelnode-ST-NAME = Node Status
+ST-channelnode-GV0-NAME = Power
+ST-channelnode-GV1-NAME = Reactive Power
+ST-channelnode-GV2-NAME = Voltage
+ST-channelnode-GV3-NAME = Imported Power
+ST-channelnode-GV4-NAME = Exported Power

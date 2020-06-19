@@ -1,24 +1,24 @@
 {
-    "name": "PythonTemplate",
-    "docs": "https://github.com/Einstein42/udi-poly-template-python",
+    "name": "Neurio/PWRView",
+    "docs": "https://github.com/BoilerGuy01/neurions",
     "type": "python3",
-    "executable": "template-poly.py",
+    "executable": "neurio-poly.py",
     "install": "install.sh",
     "install_cloud": "install_cloud.sh",
-    "description": "Template Node Server",
-    "notice": "Your disclaimer here",
-    "shortPoll": "120",
+    "description": "Neurio Node Server",
+    "notice": "Use as is",
+    "shortPoll": "10",
     "longPoll": "240",
     "testMode": false,
     "profile_version": "2.0.6",
     "credits": [
         {
-            "title": "mypoly: a NodeServer for Template Integration",
-            "author": "James Milne (Einstein.42)",
-            "version": "2.0.6",
-            "date": "November 8, 2017",
-            "source": "https://github.com/Einstein42/udi-poly-template-python",
-            "license": "https://raw.githubusercontent.com/Einstein42/udi-poly-template-python/master/LICENSE"
+            "title": "A NodeServer for Neurio Energy Monitors",
+            "author": "Jacob (PurdueGuy)",
+            "version": "1.0.0",
+            "date": "June 6, 2020",
+            "source": "https://github.com/BoilerGuy01/neurions",
+            "license": "https://raw.githubusercontent.com/BoilerGuy01/neurions/master/LICENSE"
         }
     ]
 }
