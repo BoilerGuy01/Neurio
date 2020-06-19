@@ -5,6 +5,8 @@ CMD-ctl-DISCOVER-NAME = Re-Discover
 CMD-ctl-UPDATE_PROFILE-NAME = Update Profile
 CMD-ctl-REMOVE_NOTICES_ALL-NAME = Remove All Notices
 CMD-ctl-REMOVE_NOTICE_TEST-NAME = Remove Notice Test
+CMD-SET_DEBUG_LEVEL-NAME = Set Debug Level
+ST-ctl-GV1-NAME = Debug Level
 ST-ctl-ST-NAME = NodeServer Online
 
 # ctnode
@@ -22,3 +24,8 @@ ST-channelnode-GV1-NAME = Reactive Power
 ST-channelnode-GV2-NAME = Voltage
 ST-channelnode-GV3-NAME = Imported Power
 ST-channelnode-GV4-NAME = Exported Power
+
+# Debug level
+EN_I_DEBUG_LEVEL-10 = Debug
+EN_I_DEBUG_LEVEL-20 = Info
+EN_I_DEBUG_LEVEL-30 = Warning

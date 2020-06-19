@@ -10,11 +10,11 @@
     "shortPoll": "10",
     "longPoll": "240",
     "testMode": false,
-    "profile_version": "2.0.6",
+    "profile_version": "1.0.0",
     "credits": [
         {
             "title": "A NodeServer for Neurio Energy Monitors",
-            "author": "Jacob (PurdueGuy)",
+            "author": "PurdueGuy",
             "version": "1.0.0",
             "date": "June 6, 2020",
             "source": "https://github.com/BoilerGuy01/neurions",
