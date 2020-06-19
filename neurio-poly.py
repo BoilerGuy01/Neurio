@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 try:
-    import polyinterface
+    import polyinterface,logging
 except ImportError:
     import pgc_interface as polyinterface
 import sys
@@ -23,6 +23,8 @@ modules globally. Use the --user flag, not sudo.
 """
 
 LOGGER = polyinterface.LOGGER
+LOGGER.setLevel(logging.DEBUG)
+#LOGGER.setLevel(logging.WARNING)
 _PARM_IP_ADDRESS_NAME = "NeurioIP"
 
 """
@@ -46,15 +48,15 @@ class Channel:
         self.voltage = voltage
 
 def pollSensor(self):
-        LOGGER.debug('self.polyConfig[customParams][_PARM_IP_ADDRESS_NAME] = {}'.format(self.polyConfig['customParams'][_PARM_IP_ADDRESS_NAME]))
-        LOGGER.debug('self.polyConfig[customParams] = {}'.format(self.polyConfig['customParams']))
-        LOGGER.debug('self.NeurioIP = {}'.format(self.NeurioIP))
-        LOGGER.debug('self.polyConfig = {}'.format(self.NeurioIP))
+        # LOGGER.debug('self.polyConfig[customParams][_PARM_IP_ADDRESS_NAME] = {}'.format(self.polyConfig['customParams'][_PARM_IP_ADDRESS_NAME]))
+        # LOGGER.debug('self.polyConfig[customParams] = {}'.format(self.polyConfig['customParams']))
+        # LOGGER.debug('self.NeurioIP = {}'.format(self.NeurioIP))
+        # LOGGER.debug('self.polyConfig = {}'.format(self.NeurioIP))
         url = 'http://%s/both_tables.html' % self.NeurioIP
-        LOGGER.debug('shortPoll - going to check Neurio stats @ {}'.format(url))
+        LOGGER.warning('shortPoll - going to check Neurio stats @ {}'.format(url))
         with urlopen(url) as response:
                 response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
-        LOGGER.debug('Neurio reply: {}'.format(response_content))
+        # LOGGER.debug('Neurio reply: {}'.format(response_content))
         root = ET.fromstring(response_content)
         tableIndex=0
         cts = []
@@ -142,7 +144,7 @@ class Controller(polyinterface.Controller):
         self.heartbeat(0)
         self.check_params()
         self.discover()
-        self.poly.add_custom_config_docs("<b>And this is some custom config data</b>")
+        self.poly.add_custom_config_docs("")
 
     def shortPoll(self):
         """
@@ -154,11 +156,11 @@ class Controller(polyinterface.Controller):
         cts, channels = pollSensor(self)
 
         for i, val in enumerate(cts):
-                LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
+                # LOGGER.debug('CT {} {} {} {}'.format(i, val.power, val.reactivePower, val.voltage))
                 ctNodeAddr = "ct"+str(i+1)
                 self.nodes[ctNodeAddr].updateValues(val.power, val.reactivePower, val.voltage)
         for i, val in enumerate(channels):
-                LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
+                # LOGGER.debug('Channel {} {} {} {} {} {}'.format(i, val.power, val.imported, val.exported, val.reactivePower, val.voltage))
                 channelNodeAddr = "channel"+str(i+1)
                 self.nodes[channelNodeAddr].updateValues(val.power, val.reactivePower, val.voltage, val.imported, val.exported)
         LOGGER.debug('shortPoll - done checking Neurio status')
@@ -238,6 +240,8 @@ class Controller(polyinterface.Controller):
 
     def check_params(self):
         default_ip = "0.0.0.0"
+        default_numcts = 0
+        default_numchannels = 0
         self.removeNoticesAll()
 
         if 'NeurioIP' in self.polyConfig['customParams']:
@@ -248,16 +252,58 @@ class Controller(polyinterface.Controller):
                 LOGGER.error('check_params: NeurioIP is empty')
                 self.NeurioIP = default_ip
                 LOGGER.error('check_params: NeurioIP is defined in customParams, but is blank - please update it.  Using {}'.format(self.NeurioIP))
+                self.addNotice('Set \'NeurioIP\' and then restart')
                 st = False
         else:
             LOGGER.error('check_params: NeurioIP does not exist self.polyCconfig: {}'.format(self.polyConfig))
             self.NeurioIP = default_ip
             LOGGER.error('check_params: NeurioIP not defined in customParams, please update it.  Using {}'.format(self.NeurioIP))
+            self.addNotice('Set \'NeurioIP\' and then restart')
             st = False
-            
+
+        if 'NumChannels' in self.polyConfig['customParams']:
+            LOGGER.error('NumChannels found in customParams')
+            self.NumChannels = self.polyConfig['customParams']['NumChannels']
+            LOGGER.error('check_params: NumChannels is: {}'.format(self.NumChannels))
+            if self.NumChannels == '':
+                LOGGER.error('check_params: NumChannels is empty')
+                self.NumChannels = default_ip
+                LOGGER.error('check_params: NumChannels is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumChannels))
+                self.addNotice('Set \'NumChannels\' and then restart')
+                st = False
+        else:
+            LOGGER.error('check_params: NumChannels does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            self.NumChannels = default_numchannels
+            LOGGER.error('check_params: NumChannels not defined in customParams, please update it.  Using {}'.format(self.NumChannels))
+            self.addNotice('Set \'NumChannels\' and then restart')
+            st = False
+
+        if 'NumCTs' in self.polyConfig['customParams']:
+            LOGGER.error('NumCTs found in customParams')
+            self.NumCTs = self.polyConfig['customParams']['NumCTs']
+            LOGGER.error('check_params: NumCTs is: {}'.format(self.NumCTs))
+            if self.NumCTs == '':
+                LOGGER.error('check_params: NumCTs is empty')
+                self.NumCTs = default_ip
+                LOGGER.error('check_params: NumCTs is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumCTs))
+                self.addNotice('Set \'NumCTs\' and then restart')
+                st = False
+        else:
+            LOGGER.error('check_params: NumCTs does not exist self.polyCconfig: {}'.format(self.polyConfig))
+            self.NumCTs = default_numcts
+            LOGGER.error('check_params: NumCTs not defined in customParams, please update it.  Using {}'.format(self.NumCTs))
+            self.addNotice('Set \'NumCTs\' and then restart')
+            st = False
+
+        if self.NumChannels == 0:
+            self.addNotice('Set \'NumChannels\' and then restart')
+
+        if self.NumCTs == 0:
+            self.addNotice('Set \'NumCTs\' and then restart')
+
         LOGGER.error('Done checking: NeurioIP = {}'.format(self.NeurioIP))
         # Make sure they are in the params
-        self.addCustomParam({'NeurioIP': self.NeurioIP})
+        self.addCustomParam({'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
 
     def remove_notice_test(self,command):
         LOGGER.info('remove_notice_test: notices={}'.format(self.poly.config['notices']))
@@ -308,7 +354,7 @@ class CTNode(polyinterface.Node):
         pass
 
     def updateValues(self, power, reactivePower, voltage, imported=0, exported=0):
-        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        # LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
         self.setDriver('GV0', power)
         self.setDriver('GV1', reactivePower)
         self.setDriver('GV2', voltage)
@@ -353,7 +399,7 @@ class ChannelNode(polyinterface.Node):
         pass
 
     def updateValues(self, power, reactivePower, voltage, importedPower, exportedPower):
-        LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
+        # LOGGER.debug('Updating Values {} {} {}'.format(power, reactivePower, voltage))
         self.setDriver('GV0', power)
         self.setDriver('GV1', reactivePower)
         self.setDriver('GV2', voltage)
