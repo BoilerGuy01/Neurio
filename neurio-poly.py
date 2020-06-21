@@ -33,7 +33,7 @@ def pollSensor(self):
         LOGGER.info('shortPoll - going to check Neurio stats @ {}'.format(url))
         with urlopen(url) as response:
                 response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
-        # LOGGER.debug('Neurio reply: {}'.format(response_content))
+        LOGGER.debug('Neurio reply: {}'.format(response_content))
         root = ET.fromstring(response_content)
         tableIndex=0
         for table in root:
@@ -278,7 +278,9 @@ class Controller(polyinterface.Controller):
 
     def set_debug_level(self,command):
         self.DebugLevel = int(command['value'])
+        LOGGER.warning("New debug level: {}".format(self.DebugLevel))
         self.setDriver('GV1', self.DebugLevel)
+        LOGGER.setLevel(self.DebugLevel)
 
         # Make sure they are in the params
         self.addCustomParam({'DebugLevel': self.DebugLevel, 'NeurioIP': self.NeurioIP, 'NumChannels': self.NumChannels, 'NumCTs':self.NumCTs})
