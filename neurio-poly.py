@@ -356,7 +356,7 @@ class ChannelNode(polyinterface.Node):
     # hint = [1,2,3,4]
     drivers = [
         {'driver':  'ST', 'value': 0, 'uom': 2},
-        {'driver': 'GV0', 'value': 0, 'uom': 73},
+        {'driver': 'GV0', 'value': 0, 'uom': 30},
         {'driver': 'GV1', 'value': 0, 'uom': 0},
         {'driver': 'GV2', 'value': 0, 'uom': 72},
         {'driver': 'GV3', 'value': 0, 'uom': 33},
