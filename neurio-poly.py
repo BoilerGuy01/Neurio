@@ -128,6 +128,7 @@ class Controller(polyinterface.Controller):
   def query(self,command=None):
     LOGGER.debug('Query from controller node')
     self.check_params()
+    pollSensor(self)
     for node in self.nodes:
       self.nodes[node].reportDrivers()
 
