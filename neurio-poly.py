@@ -34,66 +34,66 @@ def pollSensor(self):
     LOGGER.info('shortPoll - going to check Neurio stats @ {}'.format(url))
     with urlopen(url) as response:
       response_content = "<outer>"+response.read().decode("utf-8")+"</outer>"
-      LOGGER.debug('Neurio reply: {}'.format(response_content))
-      root = ET.fromstring(response_content)
-      tableIndex=0
-      for table in root:
-        rowIndex = 0
-        for row in table:
-          columnIndex = 0;
-          power = 0
-          reactivePower = 0
-          voltage = 0
-          imported = 0
-          exported = 0
-          for column in row:
-            # LOGGER.debug("tableIndex = {}, columnIndex = {}, rowIndex = {}".format(tableIndex, columnIndex, rowIndex))
-            if rowIndex > 1:
-              if tableIndex == 0:
-                if columnIndex == 1:
-                  power = column.text
-                  ctNodeAddr = "ct"+str(rowIndex-1)
-                  LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
-                  self.nodes[ctNodeAddr].setDriver('GV0', power)
-                  self.nodes[ctNodeAddr].setDriver('ST', 1)
-                elif columnIndex == 2:
-                  reactivePower = column.text
-                  ctNodeAddr = "ct"+str(rowIndex-1)
-                  LOGGER.debug('nodes[{}].reactivePower = {}'.format(ctNodeAddr, reactivePower))
-                  self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
-                elif columnIndex == 3:
-                  voltage = column.text
-                  ctNodeAddr = "ct"+str(rowIndex-1)
-                  LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
-                  self.nodes[ctNodeAddr].setDriver('GV2', voltage)
-                  LOGGER.debug('nodes[{}].voltage = {}'.format(ctNodeAddr, voltage))
-                else:
-                  if columnIndex == 1:
-                    power = float(column.text)
-                    channelNodeAddr = "channel"+str(rowIndex-1)
-                    LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
-                    self.nodes[channelNodeAddr].setDriver('GV0', power)
-                    self.nodes[channelNodeAddr].setDriver('ST', 1)
-                  elif columnIndex == 2:
-                    imported = column.text
-                    channelNodeAddr = "channel"+str(rowIndex-1)
-                    LOGGER.debug('nodes[{}].imported = {}'.format(channelNodeAddr, imported))
-                    self.nodes[channelNodeAddr].setDriver('GV3', imported)
-                  elif columnIndex == 3:
-                    exported = column.text
-                    channelNodeAddr = "channel"+str(rowIndex-1)
-                    LOGGER.debug('nodes[{}].exported = {}'.format(channelNodeAddr, exported))
-                    self.nodes[channelNodeAddr].setDriver('GV4', exported)
-                  elif columnIndex == 4:
-                    reactivePower = column.text
-                    channelNodeAddr = "channel"+str(rowIndex-1)
-                    LOGGER.debug('nodes[{}].reactivePower = {}'.format(channelNodeAddr, reactivePower))
-                    self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
-                  elif columnIndex == 5:
-                    voltage = column.text
-                    channelNodeAddr = "channel"+str(rowIndex-1)
-                    LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
-                    self.nodes[channelNodeAddr].setDriver('GV2', voltage)
+    LOGGER.debug('Neurio reply: {}'.format(response_content))
+    root = ET.fromstring(response_content)
+    tableIndex=0
+    for table in root:
+      rowIndex = 0
+      for row in table:
+        columnIndex = 0;
+        power = 0
+        reactivePower = 0
+        voltage = 0
+        imported = 0
+        exported = 0
+        for column in row:
+          # LOGGER.debug("tableIndex = {}, columnIndex = {}, rowIndex = {}".format(tableIndex, columnIndex, rowIndex))
+          if rowIndex > 1:
+            if tableIndex == 0:
+              if columnIndex == 1:
+                power = column.text
+                ctNodeAddr = "ct"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
+                self.nodes[ctNodeAddr].setDriver('GV0', power)
+                self.nodes[ctNodeAddr].setDriver('ST', 1)
+              elif columnIndex == 2:
+                reactivePower = column.text
+                ctNodeAddr = "ct"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].reactivePower = {}'.format(ctNodeAddr, reactivePower))
+                self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
+              elif columnIndex == 3:
+                voltage = column.text
+                ctNodeAddr = "ct"+str(rowIndex-1)
+                LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
+                self.nodes[ctNodeAddr].setDriver('GV2', voltage)
+                LOGGER.debug('nodes[{}].voltage = {}'.format(ctNodeAddr, voltage))
+            else:
+              if columnIndex == 1:
+                power = float(column.text)
+                channelNodeAddr = "channel"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
+                self.nodes[channelNodeAddr].setDriver('GV0', power)
+                self.nodes[channelNodeAddr].setDriver('ST', 1)
+              elif columnIndex == 2:
+                imported = column.text
+                channelNodeAddr = "channel"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].imported = {}'.format(channelNodeAddr, imported))
+                self.nodes[channelNodeAddr].setDriver('GV3', imported)
+              elif columnIndex == 3:
+                exported = column.text
+                channelNodeAddr = "channel"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].exported = {}'.format(channelNodeAddr, exported))
+                self.nodes[channelNodeAddr].setDriver('GV4', exported)
+              elif columnIndex == 4:
+                reactivePower = column.text
+                channelNodeAddr = "channel"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].reactivePower = {}'.format(channelNodeAddr, reactivePower))
+                self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
+              elif columnIndex == 5:
+                voltage = column.text
+                channelNodeAddr = "channel"+str(rowIndex-1)
+                LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
+                self.nodes[channelNodeAddr].setDriver('GV2', voltage)
           columnIndex += 1
         rowIndex += 1
       tableIndex += 1
