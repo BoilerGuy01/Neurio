@@ -50,50 +50,52 @@ def pollSensor(self):
           # LOGGER.debug("tableIndex = {}, columnIndex = {}, rowIndex = {}".format(tableIndex, columnIndex, rowIndex))
           if rowIndex > 1:
             if tableIndex == 0:
-              if columnIndex == 1:
-                power = column.text
+              # Only process this row if it is in range (account for header row)
+              if rowIndex <= (self.NumCTs+1):
                 ctNodeAddr = "ct"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
-                self.nodes[ctNodeAddr].setDriver('GV0', power)
-                self.nodes[ctNodeAddr].setDriver('ST', 1)
-              elif columnIndex == 2:
-                reactivePower = column.text
-                ctNodeAddr = "ct"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].reactivePower = {}'.format(ctNodeAddr, reactivePower))
-                self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
-              elif columnIndex == 3:
-                voltage = column.text
-                ctNodeAddr = "ct"+str(rowIndex-1)
-                LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
-                self.nodes[ctNodeAddr].setDriver('GV2', voltage)
-                LOGGER.debug('nodes[{}].voltage = {}'.format(ctNodeAddr, voltage))
+                if columnIndex == 1:
+                  power = column.text
+                  LOGGER.debug('nodes[{}].power = {}'.format(ctNodeAddr, power))
+                  self.nodes[ctNodeAddr].setDriver('GV0', power)
+                  self.nodes[ctNodeAddr].setDriver('ST', 1)
+                elif columnIndex == 2:
+                  reactivePower = column.text
+                  LOGGER.debug('nodes[{}].reactivePower = {}'.format(ctNodeAddr, reactivePower))
+                  self.nodes[ctNodeAddr].setDriver('GV1', reactivePower)
+                elif columnIndex == 3:
+                  voltage = column.text
+                  LOGGER.debug('voltage - ctNodeAddr = {}'.format(ctNodeAddr))
+                  self.nodes[ctNodeAddr].setDriver('GV2', voltage)
+                  LOGGER.debug('nodes[{}].voltage = {}'.format(ctNodeAddr, voltage))
+              else:
+                LOGGER.debug('Skipping CT because rowIndex = {} and numCTs = {}'.format(rowIndex, self.NumCTs))
             else:
-              if columnIndex == 1:
-                power = float(column.text)
+              # Only process this row if it is in range (account for header row)
+              if rowIndex <= (self.NumChannels+1):
                 channelNodeAddr = "channel"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
-                self.nodes[channelNodeAddr].setDriver('GV0', power)
-                self.nodes[channelNodeAddr].setDriver('ST', 1)
-              elif columnIndex == 2:
-                imported = column.text
-                channelNodeAddr = "channel"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].imported = {}'.format(channelNodeAddr, imported))
-                self.nodes[channelNodeAddr].setDriver('GV3', imported)
-              elif columnIndex == 3:
-                exported = column.text
-                channelNodeAddr = "channel"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].exported = {}'.format(channelNodeAddr, exported))
-                self.nodes[channelNodeAddr].setDriver('GV4', exported)
-              elif columnIndex == 4:
-                reactivePower = column.text
-                channelNodeAddr = "channel"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].reactivePower = {}'.format(channelNodeAddr, reactivePower))
-                self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
-              elif columnIndex == 5:
-                voltage = column.text
-                channelNodeAddr = "channel"+str(rowIndex-1)
-                LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
-                self.nodes[channelNodeAddr].setDriver('GV2', voltage)
+                if columnIndex == 1:
+                  power = float(column.text)
+                  LOGGER.debug('nodes[{}].power = {}'.format(channelNodeAddr, power))
+                  self.nodes[channelNodeAddr].setDriver('GV0', power)
+                  self.nodes[channelNodeAddr].setDriver('ST', 1)
+                elif columnIndex == 2:
+                  imported = column.text
+                  LOGGER.debug('nodes[{}].imported = {}'.format(channelNodeAddr, imported))
+                  self.nodes[channelNodeAddr].setDriver('GV3', imported)
+                elif columnIndex == 3:
+                  exported = column.text
+                  LOGGER.debug('nodes[{}].exported = {}'.format(channelNodeAddr, exported))
+                  self.nodes[channelNodeAddr].setDriver('GV4', exported)
+                elif columnIndex == 4:
+                  reactivePower = column.text
+                  LOGGER.debug('nodes[{}].reactivePower = {}'.format(channelNodeAddr, reactivePower))
+                  self.nodes[channelNodeAddr].setDriver('GV1', reactivePower)
+                elif columnIndex == 5:
+                  voltage = column.text
+                  LOGGER.debug('nodes[{}].voltage = {}'.format(channelNodeAddr, voltage))
+                  self.nodes[channelNodeAddr].setDriver('GV2', voltage)
+              else:
+                LOGGER.debug('Skipping CT because rowIndex = {} and numChannels = {}'.format(rowIndex, self.NumChannels))
           columnIndex += 1
         rowIndex += 1
       tableIndex += 1
@@ -178,8 +180,8 @@ class Controller(polyinterface.Controller):
 
   def check_params(self):
     default_ip = "0.0.0.0"
-    default_numcts = 4
-    default_numchannels = 6
+    default_numcts = 0
+    default_numchannels = 0
     self.removeNoticesAll()
 
     if 'DebugLevel' in self.polyConfig['customParams']:
@@ -226,34 +228,34 @@ class Controller(polyinterface.Controller):
 
     if 'NumChannels' in self.polyConfig['customParams']:
       LOGGER.debug('NumChannels found in customParams')
-      self.NumChannels = self.polyConfig['customParams']['NumChannels']
+      self.NumChannels = int(self.polyConfig['customParams']['NumChannels'])
       LOGGER.debug('check_params: NumChannels is: {}'.format(self.NumChannels))
       if self.NumChannels == '':
           LOGGER.debug('check_params: NumChannels is empty')
-          self.NumChannels = default_numchannels
+          self.NumChannels = int(default_numchannels)
           LOGGER.debug('check_params: NumChannels is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumChannels))
           self.addNotice('Set \'NumChannels\' and then restart')
           st = False
     else:
       LOGGER.debug('check_params: NumChannels does not exist self.polyCconfig: {}'.format(self.polyConfig))
-      self.NumChannels = default_numchannels
+      self.NumChannels = int(default_numchannels)
       LOGGER.debug('check_params: NumChannels not defined in customParams, please update it.  Using {}'.format(self.NumChannels))
       self.addNotice('Set \'NumChannels\' and then restart')
       st = False
 
     if 'NumCTs' in self.polyConfig['customParams']:
       LOGGER.debug('NumCTs found in customParams')
-      self.NumCTs = self.polyConfig['customParams']['NumCTs']
+      self.NumCTs = int(self.polyConfig['customParams']['NumCTs'])
       LOGGER.debug('check_params: NumCTs is: {}'.format(self.NumCTs))
       if self.NumCTs == '':
         LOGGER.debug('check_params: NumCTs is empty')
-        self.NumCTs = default_cts
+        self.NumCTs = int(default_cts)
         LOGGER.debug('check_params: NumCTs is defined in customParams, but is blank - please update it.  Using {}'.format(self.NumCTs))
         self.addNotice('Set \'NumCTs\' and then restart')
         st = False
     else:
       LOGGER.debug('check_params: NumCTs does not exist self.polyCconfig: {}'.format(self.polyConfig))
-      self.NumCTs = default_numcts
+      self.NumCTs = int(default_numcts)
       LOGGER.debug('check_params: NumCTs not defined in customParams, please update it.  Using {}'.format(self.NumCTs))
       self.addNotice('Set \'NumCTs\' and then restart')
       st = False
