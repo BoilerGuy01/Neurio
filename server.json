@@ -10,13 +10,13 @@
     "shortPoll": "30",
     "longPoll": "240",
     "testMode": false,
-    "profile_version": "1.0.0",
+    "profile_version": "1.0.2",
     "credits": [
         {
             "title": "A NodeServer for Neurio Energy Monitors",
             "author": "PurdueGuy",
-            "version": "1.0.0",
-            "date": "June 6, 2020",
+            "version": "1.0.2",
+            "date": "July 13, 2020",
             "source": "https://github.com/BoilerGuy01/neurions",
             "license": "https://raw.githubusercontent.com/BoilerGuy01/neurions/master/LICENSE"
         }
